@@ -5,15 +5,28 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  useColorScheme
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
 
+import {
+  getStudentIds,
+  updateStudentTabStatus
+} from "../../services/studentService";
+
+import { LightTheme, DarkTheme } from "../../theme/theme";
+
 export default function ViewIdScreen() {
+
+  const scheme = useColorScheme();
+
+  const theme = scheme === "dark"
+    ? DarkTheme
+    : LightTheme;
 
   const [profile, setProfile] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,18 +40,10 @@ export default function ViewIdScreen() {
     try {
 
       const user = JSON.parse(await AsyncStorage.getItem("user"));
-      const token = await AsyncStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://apps.actindore.com/api/combine/getRelatedProfile?mobilenumber=${user?.mobile_no}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await getStudentIds(user?.mobile_no);
 
-      setProfile(res.data?.data || []);
+      setProfile(data?.data || []);
 
     } catch (error) {
 
@@ -52,24 +57,16 @@ export default function ViewIdScreen() {
 
   };
 
-  const updateStudentStatus = async (id, mobile, status) => {
+  const toggleStatus = async (item) => {
 
     try {
 
-      const token = await AsyncStorage.getItem("token");
+      const active = item.tab_active_status === 1;
 
-      await axios.post(
-        `https://apps.actindore.com/api/combine/updateStudentTabStatus`,
-        {
-          student_main_id: id,
-          mobile: mobile,
-          status: status
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+      await updateStudentTabStatus(
+        item.student_main_id,
+        item.student_family_mobile_number,
+        active ? 0 : 1
       );
 
       loadIds();
@@ -84,24 +81,24 @@ export default function ViewIdScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" />
+      <SafeAreaView style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.text} />
       </SafeAreaView>
     )
   }
 
   return (
 
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 10 }}
       >
 
-        {/* TITLE */}
-
-        <Text style={styles.title}>Student IDs</Text>
+        <Text style={[styles.title, { color: theme.text }]}>
+          Student IDs
+        </Text>
 
         {profile.map((item, index) => {
 
@@ -113,13 +110,10 @@ export default function ViewIdScreen() {
               key={index}
               style={[
                 styles.card,
+                { backgroundColor: theme.card },
                 active && styles.activeCard
               ]}
-              onPress={() => updateStudentStatus(
-                item.student_main_id,
-                item.student_family_mobile_number,
-                active ? 0 : 1
-              )}
+              onPress={() => toggleStatus(item)}
             >
 
               <View style={styles.topRow}>
@@ -132,7 +126,7 @@ export default function ViewIdScreen() {
 
                 <View style={{ flex: 1 }}>
 
-                  <Text style={styles.name}>
+                  <Text style={[styles.name, { color: theme.text }]}>
                     {item.student_name}
                   </Text>
 
@@ -191,8 +185,7 @@ export default function ViewIdScreen() {
 const styles = StyleSheet.create({
 
   safeArea: {
-    flex: 1,
-    backgroundColor: "#F2F4F7"
+    flex: 1
   },
 
   center: {
@@ -205,22 +198,20 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     marginHorizontal: 20,
-    marginBottom: 10,
-    color: "#111827"
+    marginBottom: 10
   },
 
   card: {
-    backgroundColor: "#fff",
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 15,
     borderRadius: 20,
-    padding: 18,
-    elevation: 5
+    padding: 20,
+    elevation: 4
   },
 
   activeCard: {
-    borderWidth: 1.5,
-    borderColor: "#B31217"
+    borderWidth: 2,
+    borderColor: "#10B981"
   },
 
   topRow: {
@@ -235,7 +226,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#B31217",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14
+    marginRight: 15
   },
 
   avatarText: {
@@ -245,21 +236,20 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#111827"
+    fontSize: 16,
+    fontWeight: "700"
   },
 
   id: {
     fontSize: 13,
     color: "#6B7280",
-    marginTop: 4
+    marginTop: 3
   },
 
   status: {
-    width: 14,
-    height: 14,
-    borderRadius: 7
+    width: 15,
+    height: 15,
+    borderRadius: 10
   },
 
   activeStatus: {
@@ -279,7 +269,7 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 4
+    marginVertical: 5
   },
 
   infoText: {

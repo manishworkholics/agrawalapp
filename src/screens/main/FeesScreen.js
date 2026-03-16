@@ -2,19 +2,28 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Linking
+  Linking,
+  useColorScheme,
+  StyleSheet
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
 
+import { getFeesDetails } from "../../services/feesService";
+import { LightTheme, DarkTheme } from "../../theme/theme";
+
 export default function FeesScreen() {
+
+  const scheme = useColorScheme();
+
+  const theme = scheme === "dark"
+    ? DarkTheme
+    : LightTheme;
 
   const [fees, setFees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,18 +37,10 @@ export default function FeesScreen() {
     try {
 
       const user = JSON.parse(await AsyncStorage.getItem("user"));
-      const token = await AsyncStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://apps.actindore.com/api/fees/getFeesDetail?mobilenumber=${user?.mobile_no}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await getFeesDetails(user?.mobile_no);
 
-      setFees(res.data?.data || []);
+      setFees(data?.data || []);
 
     } catch (error) {
 
@@ -80,11 +81,7 @@ export default function FeesScreen() {
         contentContainerStyle={{ paddingTop: 10 }}
       >
 
-        {/* TITLE */}
-
         <Text style={styles.title}>Outstanding Fees</Text>
-
-        {/* PROFILE CARD */}
 
         {firstStudent && (
 
@@ -136,8 +133,6 @@ export default function FeesScreen() {
           </View>
 
         )}
-
-        {/* FEES CARD */}
 
         {fees.map((item, index) => (
 

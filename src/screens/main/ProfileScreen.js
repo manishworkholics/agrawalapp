@@ -6,15 +6,24 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  useColorScheme
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
 
+import { getRelatedProfile } from "../../services/profileService";
+import { LightTheme, DarkTheme } from "../../theme/theme";
+
 export default function ProfileScreen({ navigation }) {
+
+  const scheme = useColorScheme();
+
+  const theme = scheme === "dark"
+    ? DarkTheme
+    : LightTheme;
 
   const [profile, setProfile] = useState([]);
   const [schools, setSchools] = useState([]);
@@ -30,25 +39,21 @@ export default function ProfileScreen({ navigation }) {
     try {
 
       const user = JSON.parse(await AsyncStorage.getItem("user"));
-      const token = await AsyncStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://apps.actindore.com/api/combine/getRelatedProfile?mobilenumber=${user?.mobile_no}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await getRelatedProfile(user?.mobile_no);
 
-      setProfile(res.data?.data || []);
-      setSchools(res.data?.schools || []);
+      setProfile(data?.data || []);
+      setSchools(data?.schools || []);
 
     } catch (err) {
-      console.log(err);
+
+      console.log("Profile Error:", err);
+
     } finally {
+
       setLoading(false);
       setRefreshing(false);
+
     }
 
   };
@@ -65,8 +70,8 @@ export default function ProfileScreen({ navigation }) {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" />
+      <SafeAreaView style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.text} />
       </SafeAreaView>
     );
   }
@@ -75,7 +80,7 @@ export default function ProfileScreen({ navigation }) {
 
   return (
 
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -85,15 +90,13 @@ export default function ProfileScreen({ navigation }) {
         }
       >
 
-        {/* TITLE */}
-
-        <Text style={styles.title}>My Profile</Text>
-
-        {/* PROFILE CARD */}
+        <Text style={[styles.title, { color: theme.text }]}>
+          My Profile
+        </Text>
 
         {userProfile && (
 
-          <View style={styles.profileCard}>
+          <View style={[styles.profileCard, { backgroundColor: theme.card }]}>
 
             <View style={styles.profileTop}>
 
@@ -105,7 +108,7 @@ export default function ProfileScreen({ navigation }) {
 
               <View style={{ flex: 1 }}>
 
-                <Text style={styles.name}>
+                <Text style={[styles.name, { color: theme.text }]}>
                   {userProfile.student_name}
                 </Text>
 
@@ -144,13 +147,11 @@ export default function ProfileScreen({ navigation }) {
 
         )}
 
-        {/* SCHOOL CARD */}
-
         {schools.map((school, index) => (
 
-          <View key={index} style={styles.schoolCard}>
+          <View key={index} style={[styles.schoolCard, { backgroundColor: theme.card }]}>
 
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
               School Information
             </Text>
 
@@ -176,27 +177,38 @@ export default function ProfileScreen({ navigation }) {
 
         ))}
 
-        {/* SETTINGS */}
+        <View style={[styles.menuCard, { backgroundColor: theme.card }]}>
 
-        <View style={styles.menuCard}>
-
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("Support")}
+          >
             <Icon name="help-circle-outline" size={22} color="#374151" />
-            <Text style={styles.menuText}>Support</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>
+              Support
+            </Text>
             <Icon name="chevron-forward" size={20} />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("TermsCondition")}
+          >
             <Icon name="document-text-outline" size={22} color="#374151" />
-            <Text style={styles.menuText}>Terms & Conditions</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>
+              Terms & Conditions
+            </Text>
             <Icon name="chevron-forward" size={20} />
           </TouchableOpacity>
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity style={styles.menuItem} onPress={logout}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={logout}
+          >
             <Icon name="log-out-outline" size={22} color="#EF4444" />
             <Text style={[styles.menuText, { color: "#EF4444" }]}>
               Logout
@@ -218,8 +230,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
 
   safeArea: {
-    flex: 1,
-    backgroundColor: "#F2F4F7"
+    flex: 1
   },
 
   center: {
@@ -232,12 +243,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     marginHorizontal: 20,
-    marginBottom: 10,
-    color: "#111827"
+    marginBottom: 10
   },
 
   profileCard: {
-    backgroundColor: "#fff",
     marginHorizontal: 20,
     marginTop: 10,
     borderRadius: 20,
@@ -268,8 +277,7 @@ const styles = StyleSheet.create({
 
   name: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#111827"
+    fontWeight: "700"
   },
 
   id: {
@@ -297,7 +305,6 @@ const styles = StyleSheet.create({
   },
 
   schoolCard: {
-    backgroundColor: "#fff",
     marginHorizontal: 20,
     marginTop: 20,
     padding: 20,
@@ -318,7 +325,6 @@ const styles = StyleSheet.create({
   },
 
   menuCard: {
-    backgroundColor: "#fff",
     margin: 20,
     borderRadius: 20,
     elevation: 4
