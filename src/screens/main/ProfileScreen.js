@@ -6,14 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  useColorScheme
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
 import LinearGradient from "react-native-linear-gradient";
+
+import { getRelatedProfile } from "../../services/profileService";
+import { LightTheme, DarkTheme } from "../../theme/theme";
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState([]);
@@ -28,24 +31,20 @@ export default function ProfileScreen({ navigation }) {
   const loadData = async () => {
     try {
       const user = JSON.parse(await AsyncStorage.getItem("user"));
-      const token = await AsyncStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://apps.actindore.com/api/combine/getRelatedProfile?mobilenumber=${user?.mobile_no}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await getRelatedProfile(user?.mobile_no);
 
       setProfile(res.data?.data || []);
       setSchools(res.data?.schools || []);
     } catch (err) {
-      console.log(err);
+
+      console.log("Profile Error:", err);
+
     } finally {
+
       setLoading(false);
       setRefreshing(false);
+
     }
   };
 

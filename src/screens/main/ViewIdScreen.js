@@ -5,14 +5,21 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  useColorScheme
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
 import LinearGradient from "react-native-linear-gradient";
+
+import {
+  getStudentIds,
+  updateStudentTabStatus
+} from "../../services/studentService";
+
+import { LightTheme, DarkTheme } from "../../theme/theme";
 
 export default function ViewIdScreen() {
   const [profile, setProfile] = useState([]);
@@ -25,16 +32,8 @@ export default function ViewIdScreen() {
   const loadIds = async () => {
     try {
       const user = JSON.parse(await AsyncStorage.getItem("user"));
-      const token = await AsyncStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://apps.actindore.com/api/combine/getRelatedProfile?mobilenumber=${user?.mobile_no}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await getStudentIds(user?.mobile_no);
 
       setProfile(res.data?.data || []);
     } catch (error) {
@@ -48,18 +47,10 @@ export default function ViewIdScreen() {
     try {
       const token = await AsyncStorage.getItem("token");
 
-      await axios.post(
-        `https://apps.actindore.com/api/combine/updateStudentTabStatus`,
-        {
-          student_main_id: id,
-          mobile: mobile,
-          status: status
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+      await updateStudentTabStatus(
+        item.student_main_id,
+        item.student_family_mobile_number,
+        active ? 0 : 1
       );
 
       loadIds();
@@ -306,7 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14
+    marginRight: 15
   },
 
   avatarText: {

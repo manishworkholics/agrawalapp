@@ -2,18 +2,21 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Linking
+  Linking,
+  useColorScheme,
+  StyleSheet
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
 import LinearGradient from "react-native-linear-gradient";
+
+import { getFeesDetails } from "../../services/feesService";
+import { LightTheme, DarkTheme } from "../../theme/theme";
 
 export default function FeesScreen() {
   const [fees, setFees] = useState([]);
@@ -26,16 +29,8 @@ export default function FeesScreen() {
   const loadFees = async () => {
     try {
       const user = JSON.parse(await AsyncStorage.getItem("user"));
-      const token = await AsyncStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://apps.actindore.com/api/fees/getFeesDetail?mobilenumber=${user?.mobile_no}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await getFeesDetails(user?.mobile_no);
 
       setFees(res.data?.data || []);
     } catch (error) {
