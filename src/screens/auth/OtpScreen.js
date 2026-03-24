@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   otpBox: {
     width: 65,
     height: 65,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     textAlign: "center",
@@ -255,9 +255,9 @@ const styles = StyleSheet.create({
 
   button: {
     marginTop: 40,
-    height: 55,
+    height: 50,
     backgroundColor: "#B31217",
-    borderRadius: 30,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     elevation: 4

@@ -52,6 +52,13 @@ export default function IndividualChatScreen({ route }) {
 
     const flatRef = useRef();
 
+    const formatTime = (date) => {
+        return new Date(date).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    };
+
     useEffect(() => {
 
         (async () => {
@@ -104,14 +111,16 @@ export default function IndividualChatScreen({ route }) {
         let msgType = "TEXT";
         let link = null;
 
+        // 🔥 IMAGE UPLOAD
         if (image) {
             msgType = "IMAGE";
-            link = image;
+            link = await uploadImage(image);
         }
 
+        // 🔥 PDF UPLOAD
         if (pdf) {
             msgType = "PDF";
-            link = pdf;
+            link = await uploadFile(pdf);
         }
 
         if (!message && !link) return;
@@ -282,7 +291,9 @@ export default function IndividualChatScreen({ route }) {
                     )}
 
                     {item.link && item.link.includes(".pdf") && (
-                        <Text style={styles.pdf}>PDF</Text>
+                        <TouchableOpacity onPress={() => Linking.openURL(item.link)}>
+                            <Text style={styles.pdf}>Open PDF</Text>
+                        </TouchableOpacity>
                     )}
 
                     {item.link && !item.link.includes(".pdf") && (
@@ -292,7 +303,7 @@ export default function IndividualChatScreen({ route }) {
                     )}
 
                     <Text style={styles.time}>
-                        {new Date(item.sent_at).toLocaleTimeString()}
+                        {formatTime(item.sent_at)}
                     </Text>
 
                 </View>
@@ -371,7 +382,9 @@ export default function IndividualChatScreen({ route }) {
                 data={messages}
                 renderItem={renderItem}
                 keyExtractor={(item, i) => i.toString()}
-                onContentSizeChange={() => flatRef.current.scrollToEnd()}
+                onContentSizeChange={() => {
+                    flatRef.current?.scrollToEnd({ animated: true });
+                }}
             />
 
             {/* MENTION SUGGESTIONS */}
@@ -393,6 +406,24 @@ export default function IndividualChatScreen({ route }) {
 
                 </View>
 
+            )}
+
+            {image && (
+                <View style={{ padding: 10 }}>
+                    <Image source={{ uri: image }} style={{ width: 80, height: 80 }} />
+                    <TouchableOpacity onPress={() => setImage(null)}>
+                        <Text style={{ color: "red" }}>Remove</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {pdf && (
+                <View style={{ padding: 10 }}>
+                    <Text>PDF Selected</Text>
+                    <TouchableOpacity onPress={() => setPdf(null)}>
+                        <Text style={{ color: "red" }}>Remove</Text>
+                    </TouchableOpacity>
+                </View>
             )}
 
             {/* INPUT */}
@@ -444,188 +475,188 @@ export default function IndividualChatScreen({ route }) {
 
 const styles = StyleSheet.create({
 
-header:{
-flexDirection:"row",
-alignItems:"center",
-justifyContent:"space-between",
-paddingHorizontal:16,
-paddingVertical:12,
-backgroundColor:"#fff",
-borderBottomWidth:1,
-borderColor:"#eee"
-},
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: "#fff",
+        borderBottomWidth: 1,
+        borderColor: "#eee"
+    },
 
-title:{
-fontWeight:"700",
-fontSize:16
-},
+    title: {
+        fontWeight: "700",
+        fontSize: 16
+    },
 
-subtitle:{
-color:"#666"
-},
+    subtitle: {
+        color: "#666"
+    },
 
-menuBtn:{
-width:40,
-height:40,
-borderRadius:20,
-alignItems:"center",
-justifyContent:"center"
-},
+    menuBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: "center",
+        justifyContent: "center"
+    },
 
-teacherTitle:{
-fontWeight:"700",
-marginBottom:8
-},
+    teacherTitle: {
+        fontWeight: "700",
+        marginBottom: 8
+    },
 
-teacherBox:{
-backgroundColor:"#fff",
-margin:10,
-borderRadius:12,
-padding:12,
-shadowColor:"#000",
-shadowOpacity:0.08,
-shadowRadius:6,
-elevation:3
-},
+    teacherBox: {
+        backgroundColor: "#fff",
+        margin: 10,
+        borderRadius: 12,
+        padding: 12,
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 3
+    },
 
-teacherItem:{
-flexDirection:"row",
-alignItems:"center",
-paddingVertical:8
-},
+    teacherItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 8
+    },
 
-teacherAvatar:{
-width:36,
-height:36,
-borderRadius:18,
-backgroundColor:"#E79C1D",
-alignItems:"center",
-justifyContent:"center",
-marginRight:10
-},
+    teacherAvatar: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#E79C1D",
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 10
+    },
 
-row:{
-paddingHorizontal:10,
-paddingVertical:6
-},
+    row: {
+        paddingHorizontal: 10,
+        paddingVertical: 6
+    },
 
-left:{
-alignItems:"flex-start"
-},
+    left: {
+        alignItems: "flex-start"
+    },
 
-right:{
-alignItems:"flex-end"
-},
+    right: {
+        alignItems: "flex-end"
+    },
 
-bubble:{
-padding:12,
-borderRadius:14,
-maxWidth:"80%",
-shadowColor:"#000",
-shadowOpacity:0.05,
-shadowRadius:5,
-elevation:2
-},
+    bubble: {
+        padding: 12,
+        borderRadius: 14,
+        maxWidth: "80%",
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2
+    },
 
-myBubble:{
-backgroundColor:"#E79C1D"
-},
+    myBubble: {
+        backgroundColor: "#E79C1D"
+    },
 
-otherBubble:{
-backgroundColor:"#F3F0FF"
-},
+    otherBubble: {
+        backgroundColor: "#F3F0FF"
+    },
 
-msg:{
-fontSize:14
-},
+    msg: {
+        fontSize: 14
+    },
 
-image:{
-width:150,
-height:150,
-marginTop:5,
-borderRadius:8
-},
+    image: {
+        width: 150,
+        height: 150,
+        marginTop: 5,
+        borderRadius: 8
+    },
 
-pdf:{
-color:"blue"
-},
+    pdf: {
+        color: "blue"
+    },
 
-time:{
-fontSize:10,
-color:"#777",
-marginTop:4
-},
+    time: {
+        fontSize: 10,
+        color: "#777",
+        marginTop: 4
+    },
 
-inputBar:{
-flexDirection:"row",
-alignItems:"center",
-paddingHorizontal:10,
-paddingVertical:8,
-backgroundColor:"#fff",
-borderTopWidth:1,
-borderColor:"#eee"
-},
+    inputBar: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        backgroundColor: "#fff",
+        borderTopWidth: 1,
+        borderColor: "#eee"
+    },
 
-iconBtn:{
-width:36,
-height:36,
-borderRadius:18,
-alignItems:"center",
-justifyContent:"center",
-marginRight:6
-},
+    iconBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 6
+    },
 
-sendBtn:{
-backgroundColor:"#E79C1D",
-width:42,
-height:42,
-borderRadius:21,
-alignItems:"center",
-justifyContent:"center",
-marginLeft:6,
-shadowColor:"#000",
-shadowOpacity:0.2,
-shadowRadius:4,
-elevation:3
-},
+    sendBtn: {
+        backgroundColor: "#E79C1D",
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        alignItems: "center",
+        justifyContent: "center",
+        marginLeft: 6,
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3
+    },
 
-input:{
-flex:1,
-backgroundColor:"#f2f2f2",
-borderRadius:20,
-paddingHorizontal:14,
-height:40
-},
+    input: {
+        flex: 1,
+        backgroundColor: "#f2f2f2",
+        borderRadius: 20,
+        paddingHorizontal: 14,
+        height: 40
+    },
 
-suggestionBox:{
-position:"absolute",
-bottom:70,
-backgroundColor:"#fff",
-width:"80%",
-alignSelf:"center",
-borderRadius:10,
-padding:10,
-shadowColor:"#000",
-shadowOpacity:0.1,
-shadowRadius:5,
-elevation:4
-},
+    suggestionBox: {
+        position: "absolute",
+        bottom: 70,
+        backgroundColor: "#fff",
+        width: "80%",
+        alignSelf: "center",
+        borderRadius: 10,
+        padding: 10,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 4
+    },
 
-suggestion:{
-paddingVertical:8
-},
+    suggestion: {
+        paddingVertical: 8
+    },
 
-previewModal:{
-flex:1,
-backgroundColor:"rgba(0,0,0,0.9)",
-justifyContent:"center",
-alignItems:"center"
-},
+    previewModal: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.9)",
+        justifyContent: "center",
+        alignItems: "center"
+    },
 
-preview:{
-width:"90%",
-height:"70%",
-resizeMode:"contain"
-}
+    preview: {
+        width: "90%",
+        height: "70%",
+        resizeMode: "contain"
+    }
 
 });

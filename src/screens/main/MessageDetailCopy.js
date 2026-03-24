@@ -22,36 +22,15 @@ const BASE_URL = "https://apps.actindore.com/api/";
 
 export default function MessageDetailScreen({ route }) {
 
-    const formatDate = (date) => {
-        if (!date) return "N/A";
-        return new Date(date).toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    };
-
     const { msgId, sendedMsgId, student } = route.params;
 
     const [loading, setLoading] = useState(true);
     const [detail, setDetail] = useState(null);
-    const isReplyDone = detail?.data?.is_reply_done === 1;
-    const getYoutubeId = (url) => {
-        try {
-            return new URLSearchParams(new URL(url).search).get("v");
-        } catch {
-            return null;
-        }
-    };
     const [myResponse, setMyResponse] = useState(null);
     const [replyBodies, setReplyBodies] = useState([]);
     const [token, setToken] = useState(null);
     const [mobile, setMobile] = useState(null);
     const [uploading, setUploading] = useState(false);
-
-    const [previewImage, setPreviewImage] = useState(null);
 
     useEffect(() => {
 
@@ -382,13 +361,6 @@ export default function MessageDetailScreen({ route }) {
 
         const { msg_type, data_text, msg_body_id } = msgBody;
 
-        const response = myResponse?.data?.replyBodies?.find(
-            r => r.msg_body_id === msg_body_id
-        );
-
-        const responseData = parse(response?.data_reply_text);
-        const videoId = getYoutubeId(data_text.link);
-
         const parsed = parse(
             replyBodies.find(x => x.msg_body_id === msg_body_id)?.data_reply_text
         );
@@ -422,22 +394,21 @@ export default function MessageDetailScreen({ route }) {
 
                 {/* IMAGE */}
                 {msg_type.startsWith("IMAGE") && data_text?.link ? (
-                    <TouchableOpacity onPress={() => setPreviewImage(data_text.link)}>
-                        <Image source={{ uri: data_text.link }} style={styles.image} />
-                    </TouchableOpacity>
+                    <Image source={{ uri: data_text.link }} style={styles.image} />
                 ) : null}
 
                 {/* YOUTUBE */}
-                {msg_type.startsWith("YOUTUBE") && data_text?.link && videoId ? (
+                {msg_type.startsWith("YOUTUBE") && data_text?.link ? (
                     <TouchableOpacity onPress={() => Linking.openURL(data_text.link)}>
                         <Image
                             source={{
-                                uri: `https://img.youtube.com/vi/${videoId}/0.jpg`
+                                uri: `https://img.youtube.com/vi/${data_text.link.split("v=")[1]}/0.jpg`
                             }}
                             style={styles.image}
                         />
                     </TouchableOpacity>
                 ) : null}
+
                 {/* OPTION (Radio) */}
                 {msg_type.startsWith("OPTION") &&
                     data_text?.options?.map((opt, i) => {
@@ -520,7 +491,6 @@ export default function MessageDetailScreen({ route }) {
                 {msg_type.startsWith("TEXTBOX") && (
                     <TextInput
                         style={styles.input}
-                        value={parsed?.text || ""}
                         placeholder="Enter your answer..."
                         onChangeText={t =>
                             handleInputChange(
@@ -537,7 +507,6 @@ export default function MessageDetailScreen({ route }) {
                     <TextInput
                         multiline
                         style={styles.textarea}
-                        value={parsed?.text || ""}
                         placeholder="Write your response..."
                         onChangeText={t =>
                             handleInputChange(
@@ -569,21 +538,6 @@ export default function MessageDetailScreen({ route }) {
                             />
                         ) : null}
 
-                        {parsed?.imageURIsave && (
-                            <TouchableOpacity
-                                style={styles.removeBtn}
-                                onPress={() =>
-                                    handleInputChange(
-                                        msg_body_id,
-                                        msg_type,
-                                        JSON.stringify({ imageURIsave: null })
-                                    )
-                                }
-                            >
-                                <Text style={styles.removeText}>Remove Image</Text>
-                            </TouchableOpacity>
-                        )}
-
                     </View>
                 )}
 
@@ -606,67 +560,8 @@ export default function MessageDetailScreen({ route }) {
                             </TouchableOpacity>
                         ) : null}
 
-                        {parsed?.imageURIsave && (
-                            <TouchableOpacity
-                                style={styles.removeBtn}
-                                onPress={() =>
-                                    handleInputChange(
-                                        msg_body_id,
-                                        msg_type,
-                                        JSON.stringify({ imageURIsave: null })
-                                    )
-                                }
-                            >
-                                <Text style={styles.removeText}>Remove File</Text>
-                            </TouchableOpacity>
-                        )}
-
                     </View>
                 )}
-
-
-                {msg_type.startsWith("PDF") && data_text?.link && (
-                    <View style={styles.card}>
-                        <Text style={styles.label}>PDF Document</Text>
-
-                        <TouchableOpacity onPress={() => Linking.openURL(data_text.link)}>
-                            <Text style={styles.link}>Open PDF</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-
-                {response && (
-                    <View style={styles.responseMiniBox}>
-
-                        <Text style={styles.responseMiniTitle}>
-                            My Response
-                        </Text>
-
-                        {/* TEXT */}
-                        {responseData?.text ? (
-                            <Text style={styles.responseText}>
-                                {responseData.text}
-                            </Text>
-                        ) : null}
-
-                        {/* OPTION / CHECKBOX */}
-                        {responseData?.selected ? (
-                            <Text style={styles.responseText}>
-                                {Object.values(responseData.selected).join(", ")}
-                            </Text>
-                        ) : null}
-
-                        {/* IMAGE */}
-                        {responseData?.imageURIsave ? (
-                            <Image
-                                source={{ uri: responseData.imageURIsave }}
-                                style={styles.responseImage}
-                            />
-                        ) : null}
-
-                    </View>
-                )}
-
 
             </View>
         );
@@ -695,7 +590,7 @@ export default function MessageDetailScreen({ route }) {
                 </Text>
 
                 <Text style={styles.date}>
-                    Valid till {formatDate(detail?.data?.msg_detail?.show_upto)}
+                    Show Up to: {detail?.data?.msg_detail?.show_upto}
                 </Text>
 
                 {detail?.data?.msg_body?.map((msgBody, index) => (
@@ -710,31 +605,54 @@ export default function MessageDetailScreen({ route }) {
 
                 ))}
 
-                <TouchableOpacity
-                    style={styles.replyBtn}
-                    onPress={isReplyDone ? null : handleReply}
-                    disabled={isReplyDone}
-                >
+                {myResponse?.data?.replyBodies?.length > 0 && (
+
+                    <View style={styles.responseBox}>
+
+                        <Text style={styles.responseTitle}>My Response</Text>
+
+                        {myResponse.data.replyBodies.map((resp, i) => {
+
+                            const data = parse(resp.data_reply_text);
+
+                            return (
+
+                                <View key={i} style={{ marginBottom: 10 }}>
+
+                                    {data.text && <Text>{data.text}</Text>}
+
+                                    {data.imageURIsave && (
+
+                                        <Image
+                                            source={{ uri: data.imageURIsave }}
+                                            style={{ width: 120, height: 120 }}
+                                        />
+
+                                    )}
+
+                                </View>
+
+                            );
+
+                        })}
+
+                    </View>
+
+                )}
+
+
+
+                <TouchableOpacity style={styles.replyBtn} onPress={handleReply}>
                     <LinearGradient
-                        colors={isReplyDone ? ["#9CA3AF", "#9CA3AF"] : ["#FF7BA5", "#D7265E"]}
+                        colors={["#FF7BA5", "#D7265E"]}
                         style={styles.replyGradient}
                     >
-                        <Text style={styles.replyText}>
-                            {isReplyDone ? "Reply Sent" : "Send Reply"}
-                        </Text>
+                        <Text style={styles.replyText}>Send Reply</Text>
                     </LinearGradient>
                 </TouchableOpacity>
 
             </ScrollView>
 
-            {previewImage && (
-                <TouchableOpacity
-                    style={styles.previewOverlay}
-                    onPress={() => setPreviewImage(null)}
-                >
-                    <Image source={{ uri: previewImage }} style={styles.fullImage} />
-                </TouchableOpacity>
-            )}
         </SafeAreaView>
 
     );
@@ -742,61 +660,7 @@ export default function MessageDetailScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-    responseMiniBox: {
-        marginTop: 12,
-        padding: 10,
-        backgroundColor: "#F0F9FF",
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: "#BAE6FD"
-    },
 
-    responseMiniTitle: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#0284C7",
-        marginBottom: 6
-    },
-
-    responseText: {
-        fontSize: 13,
-        color: "#374151"
-    },
-
-    responseImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 10,
-        marginTop: 6
-    },
-    removeBtn: {
-        marginTop: 8,
-        backgroundColor: "#FEE2E2",
-        padding: 10,
-        borderRadius: 10,
-        alignItems: "center"
-    },
-
-    removeText: {
-        color: "#DC2626",
-        fontWeight: "700"
-    },
-    previewOverlay: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0,0,0,0.9)",
-        justifyContent: "center",
-        alignItems: "center"
-    },
-
-    fullImage: {
-        width: "90%",
-        height: "70%",
-        resizeMode: "contain"
-    },
     safeArea: {
         flex: 1,
         backgroundColor: "#F8F7FB"
@@ -968,7 +832,7 @@ const styles = StyleSheet.create({
     replyBtn: {
         marginHorizontal: 20,
         marginTop: 20,
-        marginBottom: 30,
+        marginBottom:30,
         borderRadius: 18,
         overflow: "hidden"
     },

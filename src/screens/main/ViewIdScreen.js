@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     color: "#D7265E",
     letterSpacing: 0.2,
-    marginTop: -10,
+    
     marginLeft: 28
   },
 

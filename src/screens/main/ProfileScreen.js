@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  
+
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -207,7 +207,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.menuCard}>
           <Text style={styles.menuTitle}>Account Settings</Text>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.menuItem}>
+          <TouchableOpacity activeOpacity={0.85} style={styles.menuItem} onPress={() => navigation.navigate("Support")}>
             <View style={styles.menuIconWrap}>
               <Icon name="help-circle-outline" size={21} color="#374151" />
             </View>
@@ -217,7 +217,7 @@ export default function ProfileScreen({ navigation }) {
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.menuItem} >
+          <TouchableOpacity activeOpacity={0.85} style={styles.menuItem} onPress={() => navigation.navigate("TermsCondition")}>
             <View style={styles.menuIconWrap}>
               <Icon name="document-text-outline" size={21} color="#374151" />
             </View>
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     color: "#D7265E",
     letterSpacing: 0.,
-    marginTop: -16,
+    
     marginLeft: 30
   },
 
