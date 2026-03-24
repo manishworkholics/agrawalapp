@@ -27,17 +27,25 @@ export default function FeesScreen() {
   }, []);
 
   const loadFees = async () => {
+
     try {
+
       const user = JSON.parse(await AsyncStorage.getItem("user"));
 
       const data = await getFeesDetails(user?.mobile_no);
 
-      setFees(res.data?.data || []);
+      setFees(data?.data || []);
+
     } catch (error) {
+
       console.log("FEES ERROR", error);
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
   const payNow = (id, dob, email) => {
@@ -250,8 +258,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     color: "#D7265E",
     letterSpacing: 0.2,
-    marginTop:-18,
-     marginLeft:28
+    marginTop: -18,
+    marginLeft: 28
   },
 
   subHeading: {
@@ -260,7 +268,7 @@ const styles = StyleSheet.create({
     color: "#8A94A6",
     marginHorizontal: 20,
     marginBottom: 10,
-     marginLeft:28
+    marginLeft: 28
   },
 
   profileCard: {
@@ -279,7 +287,7 @@ const styles = StyleSheet.create({
     position: "relative"
   },
 
-  
+
 
   profileTop: {
     flexDirection: "row",

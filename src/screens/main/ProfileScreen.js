@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  useColorScheme
+  
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,7 +16,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import LinearGradient from "react-native-linear-gradient";
 
 import { getRelatedProfile } from "../../services/profileService";
-import { LightTheme, DarkTheme } from "../../theme/theme";
+
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState([]);
@@ -29,13 +29,16 @@ export default function ProfileScreen({ navigation }) {
   }, []);
 
   const loadData = async () => {
+
     try {
+
       const user = JSON.parse(await AsyncStorage.getItem("user"));
 
       const data = await getRelatedProfile(user?.mobile_no);
 
-      setProfile(res.data?.data || []);
-      setSchools(res.data?.schools || []);
+      setProfile(data?.data || []);
+      setSchools(data?.schools || []);
+
     } catch (err) {
 
       console.log("Profile Error:", err);
@@ -46,6 +49,7 @@ export default function ProfileScreen({ navigation }) {
       setRefreshing(false);
 
     }
+
   };
 
   const onRefresh = () => {
@@ -213,7 +217,7 @@ export default function ProfileScreen({ navigation }) {
 
           <View style={styles.menuDivider} />
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.menuItem}>
+          <TouchableOpacity activeOpacity={0.85} style={styles.menuItem} >
             <View style={styles.menuIconWrap}>
               <Icon name="document-text-outline" size={21} color="#374151" />
             </View>
@@ -278,8 +282,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     color: "#D7265E",
     letterSpacing: 0.,
-    marginTop:-16,
-     marginLeft:30
+    marginTop: -16,
+    marginLeft: 30
   },
 
   subHeading: {
@@ -288,7 +292,7 @@ const styles = StyleSheet.create({
     color: "#8A94A6",
     marginHorizontal: 20,
     marginBottom: 10,
-     marginLeft:30
+    marginLeft: 30
   },
 
   profileCard: {
@@ -307,9 +311,9 @@ const styles = StyleSheet.create({
     position: "relative"
   },
 
-  
 
- 
+
+
 
   profileTop: {
     flexDirection: "row",

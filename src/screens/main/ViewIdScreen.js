@@ -30,22 +30,32 @@ export default function ViewIdScreen() {
   }, []);
 
   const loadIds = async () => {
+
     try {
+
       const user = JSON.parse(await AsyncStorage.getItem("user"));
 
       const data = await getStudentIds(user?.mobile_no);
 
-      setProfile(res.data?.data || []);
+      setProfile(data?.data || []);
+
     } catch (error) {
+
       console.log("ID ERROR", error);
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
-  const updateStudentStatus = async (id, mobile, status) => {
+  const toggleStatus = async (item) => {
+
     try {
-      const token = await AsyncStorage.getItem("token");
+
+      const active = item.tab_active_status === 1;
 
       await updateStudentTabStatus(
         item.student_main_id,
@@ -54,10 +64,15 @@ export default function ViewIdScreen() {
       );
 
       loadIds();
+
     } catch (error) {
+
       console.log("STATUS ERROR", error);
+
     }
+
   };
+
 
   if (loading) {
     return (
@@ -89,13 +104,7 @@ export default function ViewIdScreen() {
               key={index}
               activeOpacity={0.9}
               style={[styles.card, active && styles.activeCard]}
-              onPress={() =>
-                updateStudentStatus(
-                  item.student_main_id,
-                  item.student_family_mobile_number,
-                  active ? 0 : 1
-                )
-              }
+              onPress={() => toggleStatus(item)}
             >
               <View style={styles.cardAccent} />
 
@@ -238,8 +247,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     color: "#D7265E",
     letterSpacing: 0.2,
-    marginTop:-10,
-    marginLeft:28
+    marginTop: -10,
+    marginLeft: 28
   },
 
   subHeading: {
@@ -248,7 +257,7 @@ const styles = StyleSheet.create({
     color: "#8A94A6",
     marginHorizontal: 20,
     marginBottom: 10,
-     marginLeft:28
+    marginLeft: 28
   },
 
   card: {
